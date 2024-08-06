@@ -10,11 +10,18 @@ import { createSlice } from "@reduxjs/toolkit";
         addTodo(state, action) {
            state.data.push({
             id: state.data.length +1,
-            title: action.playlod,
+            title: action.payload,
            });
         },
+        deleteTodo(state, action){
+               state.data = state.data.filter((val) => val.id !== action.payload);
+        },
+        editTodo(state, action){
+            const {id, title} = action.payload
+            state.data = state.data.map((value) => value.id === id ? {...value, title  } : value)
+        }
     },
  });
 
- export const{addTodo} = todoSlice.actions;
+ export const{addTodo, editTodo, deleteTodo} = todoSlice.actions;
  export default todoSlice.reducer
