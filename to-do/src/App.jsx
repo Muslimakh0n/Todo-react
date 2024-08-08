@@ -1,16 +1,20 @@
-// Bismillah
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addTodo, editTodo, deleteTodo } from "./redux/todoSlice";
+
 function App() {
   const [value, setValue] = React.useState("");
-  const data = useSelector((state) => state.data);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
   const [isEdit, setIsEdit] = useState(false);
-  const dispatch = useDispatch();
   const [toId, setToId] = useState(0);
+  const dispatch = useDispatch();
+  const data = useSelector((state) => state.data);
+
   const addIng = (e) => {
     e.preventDefault();
     dispatch(addTodo(value));
+    setValue("");
   };
 
   const todoEditQilish = (e) => {
@@ -18,8 +22,6 @@ function App() {
     setIsEdit(false);
     dispatch(editTodo({ title: value, id: toId }));
     setValue("");
-
-    console.log(value, toId);
   };
 
   const editTing = ({ id, title }) => {
@@ -28,23 +30,74 @@ function App() {
     setToId(id);
   };
 
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSortOrderChange = (order) => {
+    setSortOrder(order);
+  };
+
+  const filteredAndSortedData = data
+    .filter((item) =>
+      item.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortOrder === "asc") {
+        return a.title.localeCompare(b.title);
+      } else {
+        return b.title.localeCompare(a.title);
+      }
+    });
+
   return (
     <div className="container">
+      {/* Search and Sort UI */}
+      <div className="d-flex justify-content-between mt-3">
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Search todos"
+          onChange={handleSearch}
+          value={searchQuery}
+          style={{ width: "200px", fontSize: "14px" }}
+        />
+        <div>
+          <button
+            className={`btn btn-outline-secondary ${
+              sortOrder === "asc" ? "active" : ""
+            }`}
+            onClick={() => handleSortOrderChange("asc")}
+          >
+            Sort A-Z
+          </button>
+          <button
+            className={`btn btn-outline-secondary ${
+              sortOrder === "desc" ? "active" : ""
+            }`}
+            onClick={() => handleSortOrderChange("desc")}
+          >
+            Sort Z-A
+          </button>
+        </div>
+      </div>
+
       <form>
         <input
           onChange={(e) => setValue(e.target.value)}
           className="form-control mt-3"
           type="text"
           placeholder="title"
+          value={value}
         />
-        {isEdit === true ? (
+        {isEdit ? (
           <button
             type="submit"
             onClick={todoEditQilish}
             className="btn btn-primary mt-3"
             style={{ width: "150px" }}
           >
-            Save{" "}
+            Save
           </button>
         ) : (
           <button
@@ -58,7 +111,7 @@ function App() {
         )}
       </form>
 
-      <table className="table">
+      <table className="table mt-3">
         <thead>
           <tr>
             <th scope="col">#</th>
@@ -67,29 +120,26 @@ function App() {
           </tr>
         </thead>
         <tbody>
-          {data.map((value, index) => {
-            return (
-              <tr key={value.id} scope="row">
-                <td>{index + 1}</td>
-                <td>{value.title}</td>
-                <td>
-                  {" "}
-                  <button
-                    className="btn btn-warning"
-                    onClick={() => editTing(value)}
-                  >
-                    edit
-                  </button>
-                  <button
-                    className="btn btn-warning"
-                    onClick={() => dispatch(deleteTodo(value.id))}
-                  >
-                    delete
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
+          {filteredAndSortedData.map((value, index) => (
+            <tr key={value.id}>
+              <td>{index + 1}</td>
+              <td>{value.title}</td>
+              <td>
+                <button
+                  className="btn btn-warning"
+                  onClick={() => editTing(value)}
+                >
+                  edit
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => dispatch(deleteTodo(value.id))}
+                >
+                  delete
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
